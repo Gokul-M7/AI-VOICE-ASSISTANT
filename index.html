@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Voice Assistant</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #000428, #004e92);
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        h1 {
+            font-size: 36px;
+            text-shadow: 0 0 10px cyan;
+            margin-bottom: 10px;
+        }
+        .chat-container {
+            width: 90%;
+            max-width: 600px;
+            height: 450px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            box-shadow: 0px 4px 15px rgba(0, 255, 255, 0.3);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 12px;
+            width: fit-content;
+            max-width: 75%;
+            font-size: 16px;
+            animation: fadeIn 0.3s ease-in;
+        }
+        .user-message {
+            background: #007bff;
+            text-align: left;
+            margin-left: auto;
+            color: white;
+        }
+        .ai-message {
+            background: #28a745;
+            text-align: left;
+            margin-right: auto;
+            color: white;
+        }
+        .input-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            width: 100%;
+            max-width: 600px;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 20px;
+            border: none;
+            outline: none;
+            background: #222;
+            color: white;
+            text-align: center;
+            box-shadow: 0px 0px 8px rgba(0, 255, 255, 0.5);
+        }
+        .mic-button, .send-button {
+            background: #ff6600;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: 0.3s;
+            box-shadow: 0px 0px 10px rgba(255, 102, 0, 0.6);
+        }
+        .mic-button:hover, .send-button:hover {
+            background: #e65c00;
+        }
+        .mic-button {
+            position: relative;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px rgba(255, 102, 0, 0.7); }
+            50% { box-shadow: 0 0 20px rgba(255, 102, 0, 0.9); }
+            100% { box-shadow: 0 0 10px rgba(255, 102, 0, 0.7); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <h1>VOXA</h1>
+    <div class="chat-container" id="chat-container">
+        <p><strong>Click the mic or type your question!</strong></p>
+    </div>
+    
+    <div class="input-container">
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button class="send-button" onclick="sendText()">📩</button>
+        <button class="mic-button" onclick="startListening()">🎤</button>
+    </div>
+
+    <script>
+        function startListening() {
+            const recognition = new window.webkitSpeechRecognition();
+            recognition.lang = "en-US";
+            recognition.start();
+            recognition.onresult = function(event) {
+                const userText = event.results[0][0].transcript;
+                displayMessage(userText, "user-message");
+                sendToAI(userText);
+            };
+        }
+
+        function sendText() {
+            const userInput = document.getElementById("user-input").value;
+            if (userInput) {
+                displayMessage(userInput, "user-message");
+                sendToAI(userInput);
+                document.getElementById("user-input").value = "";
+            }
+        }
+
+        function sendToAI(query) {
+            axios.post("http://127.0.0.1:5000/ask", { query: query })
+                .then(response => {
+                    displayMessage(response.data.response, "ai-message");
+                    speak(response.data.response);
+                })
+                .catch(error => {
+                    displayMessage("Error getting response.", "ai-message");
+                });
+        }
+
+        function displayMessage(message, className) {
+            const chatContainer = document.getElementById("chat-container");
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${className}`;
+            messageDiv.innerText = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>
