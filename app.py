@@ -4,7 +4,6 @@ from gtts import gTTS
 import os
 import playsound  
 
-# OpenAI API Key
 OPENAI_API_KEY = "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"  
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
@@ -65,3 +64,4 @@ def main():
 
 if _name_ == "_main_":
     main()
+
